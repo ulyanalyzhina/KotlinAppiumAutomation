@@ -106,6 +106,15 @@ open class FirstTest {
         )
     }
 
+    @Test
+    open fun fieldForSearchContainsText() {
+        assertElementHasText(
+            By.xpath("//*[contains(@text, 'Search Wikipedia')]"),
+            "Search Wikipedia",
+            "There is now field 'Search Wikipedia' "
+        )
+    }
+
     private fun waitForElementPresentBy(by: By, error_message: String, timeout_in_seconds: Long): WebElement {
         val wait = WebDriverWait(driver, timeout_in_seconds)
         wait.withMessage(
@@ -140,6 +149,16 @@ open class FirstTest {
         )
         return wait.until(
             ExpectedConditions.invisibilityOfElementLocated(by)
+        )
+    }
+
+    private fun assertElementHasText(by: By, expectedValue: String, error_message: String) {
+        val elementWithText = waitForElementPresentBy(by, error_message, 5)
+        val text = elementWithText.getAttribute("text")
+        Assert.assertEquals(
+            error_message,
+            expectedValue,
+            text
         )
     }
 
