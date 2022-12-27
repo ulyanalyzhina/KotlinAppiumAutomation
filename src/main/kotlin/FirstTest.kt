@@ -1,8 +1,14 @@
 import io.appium.java_client.MobileElement
 import io.appium.java_client.android.AndroidDriver
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
+import org.junit.Test
+import org.openqa.selenium.By
+import org.openqa.selenium.WebElement
 import org.openqa.selenium.remote.DesiredCapabilities
+import org.openqa.selenium.support.ui.ExpectedConditions
+import org.openqa.selenium.support.ui.WebDriverWait
 import java.net.URL
 
 open class FirstTest {
@@ -30,8 +36,112 @@ open class FirstTest {
         driver?.quit()
     }
 
-    @org.junit.Test
-    fun firstTest() {
-        println("First test run")
+    @Test
+    open fun firstTest() {
+        waitForElementByAndClick(
+            By.xpath("//*[contains(@text, 'Search Wikipedia')]"),
+            "Cannot find Search Wikipedia input",
+            15
+        )
+        waitForElementByAndSendKeys(
+            By.xpath("//*[contains(@text, 'Search…')]"),
+            "Java",
+            "Cannot find element",
+            15
+        )
+        waitForElementPresentBy(
+            By.xpath("//*[@resource-id='org.wikipedia:id/page_list_item_container']//*[@text='Object-oriented programming language']"),
+            "Cannot find element",
+            15
+        )
     }
+
+    @Test
+    open fun cancelSearch() {
+        waitForElementByAndClick(
+            By.id("org.wikipedia:id/search_container"),
+            "Cannot find Search Wikipedia input",
+            10
+        )
+        waitForElementByAndClick(
+            By.id("org.wikipedia:id/search_close_btn"),
+            "Cannot find X to cancel search",
+            10
+        )
+        waitForElementNotPresent(
+            By.id("org.wikipedia:id/search_close_btn"),
+            "X is still present on the page",
+            10
+        )
+    }
+
+    @Test
+    open fun compareArticleTitle() {
+        waitForElementByAndClick(
+            By.xpath("//*[contains(@text, 'Search Wikipedia')]"),
+            "Cannot find Search Wikipedia input",
+            5
+        )
+        waitForElementByAndSendKeys(
+            By.xpath("//*[contains(@text, 'Search…')]"),
+            "Java",
+            "Cannot find element",
+            5
+        )
+        waitForElementByAndClick(
+            By.xpath("//*[@resource-id='org.wikipedia:id/page_list_item_container']//*[@text='Object-oriented programming language']"),
+            "Cannot find element",
+            5
+        )
+        val title_element = waitForElementPresentBy(
+            By.id("org.wikipedia:id/view_page_title_text"),
+            "Cannot find article title",
+            20
+        )
+        val article_title = title_element.getAttribute("text")
+        Assert.assertEquals(
+            "We see unexpected title",
+            "Java (programming language)",
+            article_title
+        )
+    }
+
+    private fun waitForElementPresentBy(by: By, error_message: String, timeout_in_seconds: Long): WebElement {
+        val wait = WebDriverWait(driver, timeout_in_seconds)
+        wait.withMessage(
+            error_message + "\n"
+        )
+        return wait.until(
+            ExpectedConditions.visibilityOfElementLocated(by)
+        )
+    }
+
+    private fun waitForElementByAndClick(by: By, error_message: String, timeout_in_seconds: Long): WebElement? {
+        val element = waitForElementPresentBy(by, error_message, timeout_in_seconds)
+        element.click()
+        return element
+    }
+
+    private fun waitForElementByAndSendKeys(
+        by: By,
+        value: String,
+        error_message: String,
+        timeout_in_seconds: Long
+    ): WebElement? {
+        val element = waitForElementPresentBy(by, error_message, timeout_in_seconds)
+        element.sendKeys(value)
+        return element
+    }
+
+    private fun waitForElementNotPresent(by: By, error_message: String, timeoutInSeconds: Long): Boolean {
+        val wait = WebDriverWait(driver, timeoutInSeconds)
+        wait.withMessage(
+            error_message + "\n"
+        )
+        return wait.until(
+            ExpectedConditions.invisibilityOfElementLocated(by)
+        )
+    }
+
+
 }
