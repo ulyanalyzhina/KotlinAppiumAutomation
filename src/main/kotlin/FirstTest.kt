@@ -115,6 +115,64 @@ open class FirstTest {
         )
     }
 
+    @Test
+    open fun cancelSearchOfArticles() {
+        //1. Ищем слово "winter"
+        waitForElementByAndClick(
+            By.id("org.wikipedia:id/search_container"),
+            "Cannot find Search Wikipedia input",
+            5
+        )
+        waitForElementByAndSendKeys(
+            By.xpath("//*[contains(@text, 'Search…')]"),
+            "winter",
+            "Cannot find element",
+            15
+        )
+        //2. Убеждаемся, что найдено несколько статей
+        //2.1 Убеждаемся, что отобразился контейнер
+        waitForElementPresentBy(
+            By.id("org.wikipedia:id/search_results_list"),
+            "Cannot find search results list",
+            15
+        )
+        //2.2 Убеждаемся, что статей в контейнере больше чем 1
+        waitForElementsListPresentAndToBeMoreThan(
+            By.xpath("//*[@resource-id='org.wikipedia:id/page_list_item_container']"),
+            "The number of elements is not the number we were waiting for",
+            10,
+            1
+        )
+        //3. Отменяем поиск
+        waitForElementByAndClick(
+            By.id("org.wikipedia:id/search_close_btn"),
+            "Cannot find X to cancel search",
+            5
+        )
+
+        //4. Убеждаемся, что результат поиска пропал
+        waitForElementNotPresent(
+            By.id("org.wikipedia:id/search_results_list"),
+            "Cannot find search results list",
+            5
+        )
+    }
+
+    private fun waitForElementsListPresentAndToBeMoreThan(
+        by: By,
+        error_message: String,
+        timeout_in_seconds: Long,
+        numberOfElements: Int
+    ): List<WebElement?>? {
+        val wait = WebDriverWait(driver, timeout_in_seconds)
+        wait.withMessage(
+            error_message + "\n"
+        )
+        return wait.until(
+            ExpectedConditions.numberOfElementsToBeMoreThan(by, numberOfElements)
+        )
+    }
+
     private fun waitForElementPresentBy(by: By, error_message: String, timeout_in_seconds: Long): WebElement {
         val wait = WebDriverWait(driver, timeout_in_seconds)
         wait.withMessage(
@@ -161,6 +219,4 @@ open class FirstTest {
             text
         )
     }
-
-
 }
