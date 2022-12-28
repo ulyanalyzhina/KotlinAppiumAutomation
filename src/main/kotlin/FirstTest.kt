@@ -10,6 +10,7 @@ import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.support.ui.ExpectedConditions
 import org.openqa.selenium.support.ui.WebDriverWait
 import java.net.URL
+import java.util.function.Consumer
 
 open class FirstTest {
     private var driver: AndroidDriver<MobileElement>? = null
@@ -156,6 +157,50 @@ open class FirstTest {
             "Cannot find search results list",
             5
         )
+    }
+
+    @Test
+    open fun verifyTheWorldInTheResultSearch() {
+        //1. Ищем слово "Java"
+        waitForElementByAndClick(
+            By.id("org.wikipedia:id/search_container"),
+            "Cannot find Search Wikipedia input",
+            5
+        )
+        waitForElementByAndSendKeys(
+            By.xpath("//*[contains(@text, 'Search…')]"),
+            "Java",
+            "Cannot find element",
+            15
+        )
+        //2. Убеждаемся, что найдено несколько статей
+        //2.1 Убеждаемся, что отобразился контейнер
+        waitForElementPresentBy(
+            By.id("org.wikipedia:id/search_results_list"),
+            "Cannot find search results list",
+            15
+        )
+        //2.2 Убеждаемся, что статей в контейнере больше чем 1
+        val els = waitForElementsListPresentAndToBeMoreThan(
+            By.xpath("//*[@resource-id='org.wikipedia:id/page_list_item_container']"),
+            "The number of elements is not the number we were waiting for",
+            10,
+            1
+        )
+        //3. Проверяем, что каждая статья содержит вхождение 'java' или 'Java'
+        val match = "java"
+        els!!.forEach(Consumer { el: WebElement? ->
+            try {
+                el!!.findElement<WebElement>(
+                    By.xpath(
+                        "//*[@resource-id='org.wikipedia:id/page_list_item_container']" +
+                                "//*[contains(@text, match)]"
+                    )
+                )
+            } catch (e: Exception) {
+                Assert.fail("Some of the element doesn't have" + match + "in the article item")
+            }
+        })
     }
 
     private fun waitForElementsListPresentAndToBeMoreThan(
